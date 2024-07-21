@@ -5,6 +5,7 @@ import {
   TextInput,
   Button,
   FlatList,
+  ActivityIndicator
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -63,6 +64,8 @@ const index = () => {
   const [expenses, setExpenses] = useState([]);
   const [editStatus, setEditStatus] = useState(false);
   const [editId, setEditId] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const clearField = () => {
     setAmount("");
     setCategory("");
@@ -77,7 +80,7 @@ const index = () => {
     setEditId(e.id);
   };
   const fetchExpenses = async (uid) => {
-    console.log(uid, "uid");
+    setLoading(true);
     try {
       const q = query(collection(db, "expenses"), where("userId", "==", uid));
       const querySnapshot = await getDocs(q);
@@ -86,8 +89,10 @@ const index = () => {
         expensesList.push({ id: doc.id, ...doc.data() });
       });
       setExpenses(expensesList);
+      setLoading(false);
     } catch (e) {
       console.error("Error fetching expenses: ", e);
+      setLoading(false);
     }
   };
   const saveExpense = async () => {
@@ -96,6 +101,7 @@ const index = () => {
       alert("Give proper data");
       return;
     }
+    setLoading(true);
     const id = uuid.v4();
     const timestamp = Timestamp.fromDate(new Date());
     const newExpense = {
@@ -108,16 +114,20 @@ const index = () => {
     };
     await setDoc(doc(db, "expenses", id), newExpense);
     fetchExpenses(uid);
+    setLoading(false);
     clearField();
   };
   const getData = async () => {
+    setLoading(true);
     try {
       const value = await AsyncStorage.getItem("authToken");
       let user = JSON.parse(value).user;
       setUid(user.uid);
       fetchExpenses(user.uid);
+      setLoading(false);
     } catch (e) {
       console.log(e);
+      setLoading(false);
     }
   };
   const saveEdit = async () => {
@@ -128,12 +138,15 @@ const index = () => {
       description,
       timestamp,
     };
+    setLoading(true);
     try {
       const expenseDoc = doc(db, "expenses", editId);
       await updateDoc(expenseDoc, updatedData);
       fetchExpenses(uid);
+      setLoading(false);
     } catch (e) {
       console.error("Error updating document: ", e);
+      setLoading(false);
     }
     clearField();
     setEditStatus(false);
@@ -172,7 +185,9 @@ const index = () => {
       <View style={styles.listHeader}>
         <Text style={styles.listHeaderText}>Lists</Text>
       </View>
-      {expenses.length > 0 ? (
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) :expenses.length > 0 ? (
         <FlatList
           data={expenses}
           renderItem={({ item }) => (
