@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Redirect, Stack, router } from "expo-router";
+import { Stack, router } from "expo-router";
 import { useEffect, useState } from "react";
 
 export default function AuthLayout() {

@@ -1,22 +1,16 @@
 import React, { useState } from "react";
 import {
-  Alert,
   StyleSheet,
   View,
-  AppState,
-  Button,
   TouchableOpacity,
   Text,
   TextInput,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Fontisto } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+
 import { auth } from "../../firebaseConfig";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -35,9 +29,9 @@ export default function Auth() {
         router.replace("/(home)");
       }
     } catch (error) {
-      alert("Sign in failed: " + error.message);
+      alert("Sign in failed");
     }
-    // if (error) Alert.alert(error.message)
+
     setLoading(false);
   }
 
@@ -124,7 +118,8 @@ const styles = StyleSheet.create({
     color: "white",
   },
   input: {
-    backgroundColor: "red",
+    borderWidth: 1,
     padding: 10,
+    borderRadius: 5,
   },
 });

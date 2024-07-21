@@ -6,25 +6,17 @@ import {
   graphStyle,
   ActivityIndicator,
 } from "react-native";
-import React, { useEffect, useState } from "react";
-import { router } from "expo-router";
+import React, { useEffect, useState, useContext } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BarChart } from "react-native-chart-kit";
-import { useRouter } from "expo-router";
-import {
-  query,
-  where,
-  collection,
-  getDocs,
-} from "firebase/firestore";
+import { query, where, collection, getDocs } from "firebase/firestore";
 import { db } from "../../../firebaseConfig";
+import { ExpensesContext } from "../../../context/ExpensesContext";
 
 const Profile = () => {
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [userName, setUserName] = useState("");
+  const { expenses, loading } = useContext(ExpensesContext);
 
-  const router = useRouter();
+  const [userName, setUserName] = useState("");
   let categoryArray = [
     "Food",
     "Transport",
@@ -71,36 +63,19 @@ const Profile = () => {
     querySnapshot.forEach((doc) => {
       expensesList.push({ id: doc.id, ...doc.data() });
     });
-    setUserName(expensesList[0].userName);
+    setUserName(expensesList[0].userName.toUpperCase());
   };
-  const fetchExpenses = async () => {
-    setLoading(true);
-    const value = await AsyncStorage.getItem("authToken");
-    let user = JSON.parse(value).user;
-    let uid = user.uid;
-    try {
-      const q = query(collection(db, "expenses"), where("userId", "==", uid));
-      const querySnapshot = await getDocs(q);
-      const expensesList = [];
-      querySnapshot.forEach((doc) => {
-        expensesList.push({ id: doc.id, ...doc.data() });
-      });
-      setExpenses(expensesList);
-      setLoading(false);
-    } catch (e) {
-      console.error("Error fetching expenses: ", e);
-      setLoading(false);
-    }
-  };
+
   useEffect(() => {
-    fetchExpenses();
     fetchUser();
   }, []);
   return (
     <>
-      <View style={{flexDirection:"row", alignItems:"center",marginTop:10}}>
-        <Text style={{fontSize:20}}>User Name - </Text>
-        <Text style={{fontSize:15}}>{userName}</Text>
+      <View
+        style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}
+      >
+        <Text style={{ fontSize: 20 }}>User Name - </Text>
+        <Text style={{ fontSize: 15 }}>{userName}</Text>
       </View>
       <View style={styles.container}>
         {loading ? (
@@ -149,7 +124,6 @@ export default Profile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // justifyContent: "center",
     alignItems: "center",
     padding: 16,
   },
