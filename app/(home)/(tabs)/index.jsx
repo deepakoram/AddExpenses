@@ -48,11 +48,13 @@ const Item = ({ editCall, callBack, item }) => {
         <Text style={styles.title}>{`Description:- ${item?.description}`}</Text>
         <Text style={styles.title}>{`Rs:- ${item?.amount}`}</Text>
       </View>
+      <View style={styles.buttonWrapper}>
       <View>
         <Button title="Delete" onPress={() => deleteHandle(item?.id)} />
       </View>
       <View>
         <Button title="Edit" onPress={() => editHandle(item?.id)} />
+      </View>
       </View>
     </View>
   );
@@ -198,7 +200,7 @@ const Index = () => {
         <Button title="Save Expense" onPress={saveExpense} />
       )}
       <View style={styles.listHeader}>
-        <Text style={styles.listHeaderText}>Lists</Text>
+        <Text style={styles.listHeaderText}>Expense Lists</Text>
       </View>
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
@@ -246,16 +248,18 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   item: {
-    backgroundColor: "#f9c2ff",
+    width:300,
+    backgroundColor: "#3293a8",
     padding: 20,
     marginVertical: 8,
     marginHorizontal: 16,
+    borderRadius:10
   },
   title: {
     fontSize: 15,
   },
   itemWrapper: {
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "center",
     padding: 10,
@@ -281,4 +285,9 @@ const styles = StyleSheet.create({
   listHeaderText: {
     fontSize: 30,
   },
+  buttonWrapper:{
+    flexDirection:"row",
+    gap:5,
+    alignItems:"flex-end"
+  }
 });

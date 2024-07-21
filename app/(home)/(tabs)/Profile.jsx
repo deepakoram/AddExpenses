@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  Button,
   StyleSheet,
   Dimensions,
   graphStyle,
@@ -11,55 +10,69 @@ import React, { useEffect, useState } from "react";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BarChart } from "react-native-chart-kit";
-import { useRouter } from 'expo-router';
+import { useRouter } from "expo-router";
 import {
-  doc,
-  setDoc,
-  Timestamp,
   query,
   where,
   collection,
   getDocs,
-  deleteDoc,
-  updateDoc,
 } from "firebase/firestore";
 import { db } from "../../../firebaseConfig";
 
 const Profile = () => {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [userName, setUserName] = useState("");
 
   const router = useRouter();
-  let categoryArray =  ["Food", "Transport", "Utilities", "Shopping", "Health", "Other"];
+  let categoryArray = [
+    "Food",
+    "Transport",
+    "Utilities",
+    "Shopping",
+    "Health",
+    "Other",
+  ];
   const totalAmount = expenses.reduce((total, expense) => {
     return total + parseFloat(expense.amount);
   }, 0);
   const totals = expenses.reduce((acc, expense) => {
     const category = expense.category;
     const amount = parseFloat(expense.amount) || 0;
-  
+
     if (acc[category]) {
       acc[category] += amount;
     } else {
       acc[category] = amount;
     }
-  
+
     return acc;
   }, {});
-  const result = categoryArray.map(category => ({
+  const result = categoryArray.map((category) => ({
     category,
-    amount: totals[category] || 0
+    amount: totals[category] || 0,
   }));
-  
+
   const data = {
-    labels: result?.map((data)=>data?.category),
+    labels: result?.map((data) => data?.category),
     datasets: [
       {
-        data: result?.map((data)=>data?.amount),
+        data: result?.map((data) => data?.amount),
       },
     ],
   };
-
+  const fetchUser = async () => {
+    const value = await AsyncStorage.getItem("authToken");
+    let user = JSON.parse(value).user;
+    let uid = user.uid;
+    const q = query(collection(db, "users"), where("id", "==", uid));
+    const querySnapshot = await getDocs(q);
+    const expensesList = [];
+    querySnapshot.forEach((doc) => {
+      expensesList.push({ id: doc.id, ...doc.data() });
+    });
+    setUserName(expensesList[0].userName);
+  };
   const fetchExpenses = async () => {
     setLoading(true);
     const value = await AsyncStorage.getItem("authToken");
@@ -81,49 +94,53 @@ const Profile = () => {
   };
   useEffect(() => {
     fetchExpenses();
+    fetchUser();
   }, []);
-  useEffect(() => {
-    fetchExpenses();
-  }, [router]);
-
   return (
-    <View style={styles.container}>
-      {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
-      ) : (
-        <>
-          <BarChart
-            style={graphStyle}
-            data={data}
-            width={Dimensions.get("window").width}
-            height={220}
-            yAxisLabel="₹"
-            chartConfig={{
-              backgroundColor: "#e26a00",
-              backgroundGradientFrom: "#fb8c00",
-              backgroundGradientTo: "#ffa726",
-              decimalPlaces: 2, // optional, defaults to 2dp
-              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              style: {
-                borderRadius: 16,
-              },
-              propsForDots: {
-                r: "6",
-                strokeWidth: "2",
-                stroke: "#ffa726",
-              },
-            }}
-            verticalLabelRotation={0}
-          />
-          <View style={styles.listHeader}>
-            <Text
-              style={styles.listHeaderText}
-            >{`Total Spent - ₹${totalAmount}`}</Text>
-          </View>
-        </>
-      )}
-    </View>
+    <>
+      <View style={{flexDirection:"row", alignItems:"center",marginTop:10}}>
+        <Text style={{fontSize:20}}>User Name - </Text>
+        <Text style={{fontSize:15}}>{userName}</Text>
+      </View>
+      <View style={styles.container}>
+        {loading ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : (
+          <>
+            <Text style={{ fontSize: 20, marginBottom: 10 }}>Expense Chat</Text>
+            <BarChart
+              style={graphStyle}
+              data={data}
+              width={Dimensions.get("window").width}
+              height={220}
+              yAxisLabel="₹"
+              chartConfig={{
+                backgroundColor: "#e26a00",
+                backgroundGradientFrom: "#fb8c00",
+                backgroundGradientTo: "#ffa726",
+                decimalPlaces: 2, // optional, defaults to 2dp
+                color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                style: {
+                  borderRadius: 16,
+                },
+                propsForDots: {
+                  r: "6",
+                  strokeWidth: "2",
+                  stroke: "#ffa726",
+                },
+              }}
+              verticalLabelRotation={0}
+            />
+            <View style={styles.listHeader}>
+              <Text
+                style={styles.listHeaderText}
+              >{`Total Spent - ₹${totalAmount}`}</Text>
+            </View>
+          </>
+        )}
+      </View>
+    </>
   );
 };
 
@@ -148,5 +165,4 @@ const styles = StyleSheet.create({
   listHeaderText: {
     fontSize: 30,
   },
-  
 });

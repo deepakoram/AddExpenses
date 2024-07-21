@@ -5,32 +5,20 @@ import { useEffect,useState } from "react";
 import { router } from "expo-router";
 import { Text,Button,View, StyleSheet } from "react-native";
 import {
-  doc,
-  setDoc,
-  Timestamp,
   query,
   where,
   collection,
   getDocs,
-  deleteDoc,
-  updateDoc,
 } from "firebase/firestore";
 import { db } from "../../../firebaseConfig";
 
 
 export default function TabNavigator() {
-  const [userName, setUserName] = useState("");
   const getData = async () => {
     try {
       const value = await AsyncStorage.getItem("authToken");
       let authToken = JSON.parse(value)._tokenResponse.idToken;
-      const q = query(collection(db, "users"), where("id", "==", JSON.parse(value)?.user?.uid));
-      const querySnapshot = await getDocs(q);
-      const expensesList = [];
-      querySnapshot.forEach((doc) => {
-        expensesList.push({ id: doc.id, ...doc.data() });
-      });
-      setUserName(expensesList[0].userName);
+      
       if (!authToken) {
         router.replace("/(auth)");
         await AsyncStorage.clear();
@@ -61,13 +49,6 @@ export default function TabNavigator() {
             <FontAwesome5 name="home" size={size} color={color} />
           ),
           headerTitleAlign: "center",
-          headerRight: () => (
-            <View style={styles.logoutButton}>
-            <Text
-              style={styles.text}
-            >{userName}</Text>
-            </View>
-          ),
         }}
       />
       <Tabs.Screen
