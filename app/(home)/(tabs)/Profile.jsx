@@ -5,54 +5,124 @@ import {
   StyleSheet,
   Dimensions,
   graphStyle,
+  ActivityIndicator,
 } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { BarChart } from "react-native-chart-kit";
+import { useRouter } from 'expo-router';
 import {
-  LineChart,
-  BarChart,
-  PieChart,
-  ProgressChart,
-  ContributionGraph,
-  StackedBarChart,
-} from "react-native-chart-kit";
+  doc,
+  setDoc,
+  Timestamp,
+  query,
+  where,
+  collection,
+  getDocs,
+  deleteDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { db } from "../../../firebaseConfig";
 
 const Profile = () => {
+  const [expenses, setExpenses] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
+  let categoryArray =  ["Food", "Transport", "Utilities", "Shopping", "Health", "Other"];
+  const totalAmount = expenses.reduce((total, expense) => {
+    return total + parseFloat(expense.amount);
+  }, 0);
+  const totals = expenses.reduce((acc, expense) => {
+    const category = expense.category;
+    const amount = parseFloat(expense.amount) || 0;
+  
+    if (acc[category]) {
+      acc[category] += amount;
+    } else {
+      acc[category] = amount;
+    }
+  
+    return acc;
+  }, {});
+  const result = categoryArray.map(category => ({
+    category,
+    amount: totals[category] || 0
+  }));
+  
   const data = {
-    labels: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    labels: result?.map((data)=>data?.category),
     datasets: [
       {
-        data: [20, 45, 28, 80, 99, 43],
+        data: result?.map((data)=>data?.amount),
       },
     ],
   };
+
+  const fetchExpenses = async () => {
+    setLoading(true);
+    const value = await AsyncStorage.getItem("authToken");
+    let user = JSON.parse(value).user;
+    let uid = user.uid;
+    try {
+      const q = query(collection(db, "expenses"), where("userId", "==", uid));
+      const querySnapshot = await getDocs(q);
+      const expensesList = [];
+      querySnapshot.forEach((doc) => {
+        expensesList.push({ id: doc.id, ...doc.data() });
+      });
+      setExpenses(expensesList);
+      setLoading(false);
+    } catch (e) {
+      console.error("Error fetching expenses: ", e);
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
+  useEffect(() => {
+    fetchExpenses();
+  }, [router]);
+
   return (
     <View style={styles.container}>
-      <BarChart
-        style={graphStyle}
-        data={data}
-        width={Dimensions.get("window").width}
-        height={220}
-        yAxisLabel="$"
-        chartConfig={{
-          backgroundColor: "#e26a00",
-          backgroundGradientFrom: "#fb8c00",
-          backgroundGradientTo: "#ffa726",
-          decimalPlaces: 2, // optional, defaults to 2dp
-          color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          style: {
-            borderRadius: 16,
-          },
-          propsForDots: {
-            r: "6",
-            strokeWidth: "2",
-            stroke: "#ffa726",
-          },
-        }}
-        verticalLabelRotation={30}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <>
+          <BarChart
+            style={graphStyle}
+            data={data}
+            width={Dimensions.get("window").width}
+            height={220}
+            yAxisLabel="₹"
+            chartConfig={{
+              backgroundColor: "#e26a00",
+              backgroundGradientFrom: "#fb8c00",
+              backgroundGradientTo: "#ffa726",
+              decimalPlaces: 2, // optional, defaults to 2dp
+              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              style: {
+                borderRadius: 16,
+              },
+              propsForDots: {
+                r: "6",
+                strokeWidth: "2",
+                stroke: "#ffa726",
+              },
+            }}
+            verticalLabelRotation={0}
+          />
+          <View style={styles.listHeader}>
+            <Text
+              style={styles.listHeaderText}
+            >{`Total Spent - ₹${totalAmount}`}</Text>
+          </View>
+        </>
+      )}
     </View>
   );
 };
@@ -70,4 +140,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     marginBottom: 16,
   },
+  listHeader: {
+    marginTop: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  listHeaderText: {
+    fontSize: 30,
+  },
+  
 });

@@ -10,7 +10,6 @@ export default function AuthLayout() {
       const value = await AsyncStorage.getItem("authToken");
       if (value) {
         const authToken = JSON.parse(value)?._tokenResponse?.idToken;
-        // console.log(authToken);
         if (authToken) {
           router.replace("/(home)");
         } else {
@@ -20,7 +19,6 @@ export default function AuthLayout() {
         setLoading(false);
       }
     } catch (e) {
-      console.log(e);
       setLoading(false);
     }
   };

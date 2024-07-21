@@ -35,7 +35,6 @@ export default function Auth() {
         router.replace("/(home)");
       }
     } catch (error) {
-      console.log(error);
       alert("Sign in failed: " + error.message);
     }
     // if (error) Alert.alert(error.message)

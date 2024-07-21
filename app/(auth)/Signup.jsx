@@ -32,7 +32,6 @@ export default function SignUp() {
     try {
       const user = await createUserWithEmailAndPassword(auth, email, password);
       if (user) {
-        console.log(user?.user?.uid, "user");
         await setDoc(doc(db, "users", user?.user?.uid), {
           email: user?.user?.email,
           id: user?.user?.uid,
@@ -43,7 +42,6 @@ export default function SignUp() {
         router.replace("/(home)");
       }
     } catch (error) {
-      console.log(error);
       alert("Sign in failed: " + error.message);
     }
     // if (error) Alert.alert(error.message)

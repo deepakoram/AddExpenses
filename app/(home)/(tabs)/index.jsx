@@ -5,7 +5,7 @@ import {
   TextInput,
   Button,
   FlatList,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -23,6 +23,7 @@ import {
 import { db } from "../../../firebaseConfig";
 import uuid from "react-native-uuid";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Picker } from "@react-native-picker/picker";
 
 const Item = ({ editCall, callBack, item }) => {
   const deleteHandle = async () => {
@@ -56,7 +57,8 @@ const Item = ({ editCall, callBack, item }) => {
     </View>
   );
 };
-const index = () => {
+
+const Index = () => {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -71,14 +73,15 @@ const index = () => {
     setCategory("");
     setDescription("");
   };
+
   const editCall = (e) => {
-    console.log(e, "e");
     setEditStatus(true);
     setAmount(e?.amount);
     setCategory(e.category);
     setDescription(e.description);
     setEditId(e.id);
   };
+
   const fetchExpenses = async (uid) => {
     setLoading(true);
     try {
@@ -95,8 +98,8 @@ const index = () => {
       setLoading(false);
     }
   };
+
   const saveExpense = async () => {
-    // Save expense logic here
     if (!amount || !category || !description) {
       alert("Give proper data");
       return;
@@ -117,6 +120,7 @@ const index = () => {
     setLoading(false);
     clearField();
   };
+
   const getData = async () => {
     setLoading(true);
     try {
@@ -126,10 +130,10 @@ const index = () => {
       fetchExpenses(user.uid);
       setLoading(false);
     } catch (e) {
-      console.log(e);
       setLoading(false);
     }
   };
+
   const saveEdit = async () => {
     const timestamp = Timestamp.fromDate(new Date());
     const updatedData = {
@@ -151,9 +155,11 @@ const index = () => {
     clearField();
     setEditStatus(false);
   };
+
   useEffect(() => {
     getData();
   }, []);
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Amount</Text>
@@ -165,11 +171,20 @@ const index = () => {
       />
 
       <Text style={styles.label}>Category</Text>
-      <TextInput
-        style={styles.input}
-        value={category}
-        onChangeText={setCategory}
-      />
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={category}
+          onValueChange={(itemValue) => setCategory(itemValue)}
+        >
+          <Picker.Item label="Select Category" value="" />
+          <Picker.Item label="Food" value="Food" />
+          <Picker.Item label="Transport" value="Transport" />
+          <Picker.Item label="Utilities" value="Utilities" />
+          <Picker.Item label="Shopping" value="Shopping" />
+          <Picker.Item label="Health" value="Health" />
+          <Picker.Item label="Other" value="Other" />
+        </Picker>
+      </View>
 
       <Text style={styles.label}>Description</Text>
       <TextInput
@@ -187,7 +202,7 @@ const index = () => {
       </View>
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
-      ) :expenses.length > 0 ? (
+      ) : expenses.length > 0 ? (
         <FlatList
           data={expenses}
           renderItem={({ item }) => (
@@ -208,7 +223,7 @@ const index = () => {
   );
 };
 
-export default index;
+export default Index;
 
 const styles = StyleSheet.create({
   container: {
@@ -223,6 +238,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ccc",
     padding: 8,
+    marginBottom: 16,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: "#ccc",
     marginBottom: 16,
   },
   item: {
