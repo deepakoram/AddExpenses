@@ -47,11 +47,9 @@ const Item = ({ editCall, callBack, item }) => {
         <Text style={styles.title}>{`Rs:- ${item?.amount}`}</Text>
       </View>
       <View>
-        <Button
-          style={{ marginBottom: 5 }}
-          title="Delete"
-          onPress={() => deleteHandle(item?.id)}
-        />
+        <Button title="Delete" onPress={() => deleteHandle(item?.id)} />
+      </View>
+      <View>
         <Button title="Edit" onPress={() => editHandle(item?.id)} />
       </View>
     </View>
@@ -171,8 +169,8 @@ const index = () => {
       ) : (
         <Button title="Save Expense" onPress={saveExpense} />
       )}
-      <View>
-        <Text>Lists</Text>
+      <View style={styles.listHeader}>
+        <Text style={styles.listHeaderText}>Lists</Text>
       </View>
       {expenses.length > 0 ? (
         <FlatList
@@ -187,7 +185,7 @@ const index = () => {
           keyExtractor={(item) => item.id}
         />
       ) : (
-        <View>
+        <View style={styles.listHeader}>
           <Text>No data present</Text>
         </View>
       )}
@@ -239,5 +237,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
+  },
+  listHeader: {
+    marginTop: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  listHeaderText: {
+    fontSize: 30,
   },
 });
