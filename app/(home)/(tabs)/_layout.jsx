@@ -3,6 +3,8 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect } from "react";
 import { router } from "expo-router";
+import { Button,View, StyleSheet } from "react-native";
+
 
 export default function TabNavigator() {
   const getData = async () => {
@@ -20,6 +22,15 @@ export default function TabNavigator() {
   useEffect(() => {
     getData();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.clear();
+      router.replace("/(auth)/login"); 
+    } catch (e) {
+      console.error("Error logging out:", e);
+    }
+  };
   return (
     <Tabs>
       <Tabs.Screen
@@ -40,8 +51,24 @@ export default function TabNavigator() {
             <FontAwesome5 name="user-alt" size={size} color={color} />
           ),
           headerTitleAlign: "center",
+          headerRight: () => (
+            <View style={styles.logoutButton}>
+            <Button
+              onPress={handleLogout}
+              title="Logout"
+              color="#000"
+            />
+            </View>
+          ),
         }}
       />
     </Tabs>
   );
 }
+
+
+const styles = StyleSheet.create({
+  logoutButton: {
+    marginRight: 10, // Adjust the value as needed
+  },
+});
